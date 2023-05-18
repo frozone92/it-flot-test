@@ -2,10 +2,7 @@ import colors from 'vuetify/es5/util/colors'
 
 export default {
   // Disable server-side rendering: https://go.nuxtjs.dev/ssr-mode
-  ssr: false,
-
-  // Target: https://go.nuxtjs.dev/config-target
-  target: 'static',
+  ssr: true,
 
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
@@ -26,12 +23,10 @@ export default {
   },
 
   // Global CSS: https://go.nuxtjs.dev/config-css
-  css: [
-  ],
+  css: [],
 
   // Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
-  plugins: [
-  ],
+  plugins: ['~/plugins/axios.js'],
 
   // Auto import components: https://go.nuxtjs.dev/config-components
   components: true,
@@ -47,20 +42,58 @@ export default {
   // Modules: https://go.nuxtjs.dev/config-modules
   modules: [
     // https://go.nuxtjs.dev/axios
-    '@nuxtjs/axios'
+    '@nuxtjs/axios',
+    '@nuxtjs/auth-next'
   ],
+
+  router: {
+    middleware: ['auth']
+  },
 
   // Axios module configuration: https://go.nuxtjs.dev/config-axios
   axios: {
-    // Workaround to avoid enforcing hard-coded localhost:3000: https://github.com/nuxt-community/axios-module/issues/308
-    baseURL: '/'
+    credentials: true,
+    proxy: true
+  },
+
+  proxy: {
+    '/api': {
+      target: 'http://0.0.0.0:8000'
+    },
+    '/storage': {
+      target: 'http://0.0.0.0:8000'
+    }
+  },
+
+  auth: {
+    strategies: {
+      local: {
+        token: {
+          property: 'result.token',
+          type: 'Bearer',
+          maxAge: 1800
+        },
+        endpoints: {
+          csrf: { url: '/api/csrf-token' },
+          login: { url: '/api/login', method: 'post' },
+          logout: { url: '/api/login', method: 'delete' },
+          user: { url: '/api/login', method: 'get' }
+        }
+      }
+    },
+    redirect: {
+      home: '/',
+      login: '/login',
+      logout: '/login',
+      callback: '/login'
+    }
   },
 
   // Vuetify module configuration: https://go.nuxtjs.dev/config-vuetify
   vuetify: {
     customVariables: ['~/assets/variables.scss'],
     theme: {
-      dark: true,
+      dark: false,
       themes: {
         dark: {
           primary: colors.blue.darken2,
@@ -77,5 +110,8 @@ export default {
 
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {
+    transpile: [
+      'defu'
+    ]
   }
 }
